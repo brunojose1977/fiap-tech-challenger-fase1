@@ -16,13 +16,13 @@ from sklearn.metrics import classification_report, accuracy_score
 
 # 1. Carregar o dataset
 # try:
-#     df = pd.read_csv('/home/brunojose/devops/python/TechChallenger1/datasetdiabetes.csv')
+#     df = pd.read_csv('/home/brunojose/devops/python/Fiap-TechChallenger1/datasets/diabetes.csv')
 #     print("Dataset carregado com sucesso!")
 # except FileNotFoundError:
 #     print("Erro: O arquivo 'diabetes.csv' não foi encontrado. Certifique-se de que ele está no diretório correto.")
 #     # Usar um dataset de exemplo para demonstração se necessário, mas o código abaixo assume o carregamento.
 #     # return 
-df = pd.read_csv('/home/brunojose/devops/python/TechChallenger1/dataset/diabetes.csv')
+df = pd.read_csv('/home/brunojose/devops/python/Fiap-TechChallenger1/datasets/diabetes.csv')
 print("Dataset carregado com sucesso!")
 
 # Visualizar as primeiras linhas e informações gerais
