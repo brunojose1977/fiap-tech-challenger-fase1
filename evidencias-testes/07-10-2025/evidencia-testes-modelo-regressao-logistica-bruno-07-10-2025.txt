@@ -1,0 +1,49 @@
+﻿07/10/2025 – Primeira rodada do modelo de Regressão Logística sobre o dataset de “diabetes.csv”
+
+Contagem de valores nulos (NaN) após imputação:
+Pregnancies                 0
+Glucose                     0
+BloodPressure               0
+SkinThickness               0
+Insulin                     0
+BMI                         0
+DiabetesPedigreeFunction    0
+Age                         0
+Outcome                     0
+dtype: int64
+
+Dimensão de X (Features): (768, 8)
+Dimensão de y (Target): (768,)
+Dimensão de X_train: (614, 8)
+Dimensão de X_test: (154, 8)
+
+Dados escalados com sucesso usando StandardScaler (Padronização).
+
+Modelo de Regressão Logística treinado com sucesso!
+
+--- Desempenho do Modelo ---
+Acurácia no conjunto de teste: 0.6948
+
+Relatório de Classificação (Precision, Recall, F1-Score, Support):
+              precision    recall  f1-score   support
+
+           0       0.75      0.80      0.77       100
+           1       0.57      0.50      0.53        54
+
+    accuracy                           0.69       154
+   macro avg       0.66      0.65      0.65       154
+weighted avg       0.69      0.69      0.69       154
+
+
+--- Análise dos Coeficientes ---
+
+Coeficientes do Modelo (Impacto das Features):
+                    Feature  Coefficient
+1                   Glucose     1.180614
+5                       BMI     0.687247
+0               Pregnancies     0.376536
+6  DiabetesPedigreeFunction     0.233195
+7                       Age     0.147300
+4                   Insulin    -0.066171
+2             BloodPressure    -0.043986
+3             SkinThickness     0.027302
