@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
+import matplotlib.pyplot as plt
 
 EXECUTAR_TRATAMENTO_OUTLIERS = True
 
@@ -172,6 +173,27 @@ Basicamente as colunas que possuem outliers serão tratadas e os dados outliers 
 '''
 if EXECUTAR_TRATAMENTO_OUTLIERS and len(outliers) > 0:
     df = tratar_e_eliminar_outliers(df, outliers, iqr_factor=1.5)
+
+
+'''
+Avaliar a escala dos dados
+
+Colunas do Dataset
+Pregnancies,Glucose,BloodPressure,SkinThickness,Insulin,BMI,DiabetesPedigreeFunction,Age,Outcome
+'''
+
+colunas_dataset = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insulin','BMI','DiabetesPedigreeFunction','Age','Outcome']
+
+for coluna in colunas_dataset:
+    if coluna in df.columns:
+        # Criar o gráfico de boxplot
+        print('fImprimindo boxplot para a coluna:', coluna)
+        plt.boxplot(df[coluna])
+        plt.title(coluna)
+        plt.ylabel('Valores')
+        plt.show()
+        # Exibir estatísticas descritivas
+        print(df[coluna].describe())    
 
 '''
 3. Preparação para o Modelo (Separação e Escalamento)
