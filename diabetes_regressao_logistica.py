@@ -14,6 +14,95 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 
+EXECUTAR_TRATAMENTO_OUTLIERS = True
+
+def detectar_outliers_iqr(df):
+    """
+    Detecta outliers em cada coluna numérica de um DataFrame usando o método IQR.
+
+    Args:
+        df (pd.DataFrame): O DataFrame de entrada.
+
+    Returns:
+        list: Uma lista de nomes de colunas onde outliers foram encontrados.
+    """
+    colunas_com_outliers = []
+    
+    # Colunas numéricas (assumindo que todas, exceto 'Outcome' que é binária, são numéricas)
+    colunas_numericas = df.drop(columns=['Outcome'], errors='ignore').select_dtypes(include=np.number).columns
+    
+    for coluna in colunas_numericas:
+        # Calcular Q1 (25º percentil) e Q3 (75º percentil)
+        Q1 = df[coluna].quantile(0.25)
+        Q3 = df[coluna].quantile(0.75)
+        
+        # Calcular o Intervalo Interquartil (IQR)
+        IQR = Q3 - Q1
+        
+        # Definir os limites inferior e superior para outliers
+        limite_inferior = Q1 - 1.5 * IQR
+        limite_superior = Q3 + 1.5 * IQR
+        
+        # Identificar outliers
+        # Outlier é um valor abaixo do limite inferior OU acima do limite superior
+        outliers = df[(df[coluna] < limite_inferior) | (df[coluna] > limite_superior)]
+        
+        # Verificar se há algum outlier
+        if not outliers.empty:
+            colunas_com_outliers.append(coluna)
+            
+    return colunas_com_outliers
+
+def tratar_e_eliminar_outliers(df, colunas_com_outliers, iqr_factor=1.5):
+    """
+    Remove as linhas de um DataFrame que contêm outliers nas colunas especificadas.
+    O método de eliminação é o Intervalo Interquartil (IQR).
+
+    Args:
+        df (pd.DataFrame): O DataFrame de entrada.
+        colunas_com_outliers (list): Lista de nomes de colunas para tratar.
+        iqr_factor (float): Fator multiplicativo do IQR (padrão é 1.5).
+
+    Returns:
+        pd.DataFrame: Um novo DataFrame sem os outliers nas colunas especificadas.
+    """
+    df_limpo = df.copy()
+    
+    # Criamos uma máscara de filtro para manter as linhas
+    # Começamos com True, significando que todas as linhas são mantidas inicialmente
+    mascara_filtro = pd.Series(True, index=df_limpo.index)
+    
+    for coluna in colunas_com_outliers:
+        if coluna in df_limpo.columns:
+            # 1. Calcular Q1 e Q3
+            Q1 = df_limpo[coluna].quantile(0.25)
+            Q3 = df_limpo[coluna].quantile(0.75)
+            
+            # 2. Calcular o IQR
+            IQR = Q3 - Q1
+            
+            # 3. Definir os limites inferior e superior
+            limite_inferior = Q1 - iqr_factor * IQR
+            limite_superior = Q3 + iqr_factor * IQR
+            
+            # 4. Criar uma máscara para as linhas que *NÃO* são outliers na coluna atual
+            # Uma linha NÃO é outlier se o valor for >= limite_inferior E <= limite_superior
+            mascara_coluna = (df_limpo[coluna] >= limite_inferior) & (df_limpo[coluna] <= limite_superior)
+            
+            # 5. Atualizar a máscara de filtro combinada
+            # Usamos o operador '&' (AND) para garantir que uma linha seja mantida 
+            # *SOMENTE SE* não for outlier em *TODAS* as colunas analisadas até agora.
+            mascara_filtro = mascara_filtro & mascara_coluna
+            
+    # Aplicar a máscara final para obter o DataFrame limpo
+    df_resultante = df_limpo[mascara_filtro]
+    
+    print(f"Shape do DataFrame Original: {df.shape}")
+    print(f"Linhas removidas: {df.shape[0] - df_resultante.shape[0]}")
+    print(f"Shape do DataFrame Limpo: {df_resultante.shape}")
+
+    return df_resultante
+
 # 1. Carregar o dataset
 # try:
 #     df = pd.read_csv('/home/brunojose/devops/python/Fiap-TechChallenger1/datasets/diabetes.csv')
@@ -63,6 +152,26 @@ for col in cols_to_replace:
 
 print("\nContagem de valores nulos (NaN) após imputação:")
 print(df.isnull().sum())
+
+outliers = []
+'''
+Detecção de Outliers
+Usaremos o método do Intervalo Interquartil (IQR) para detectar outliers. Este método é eficaz para identificar valores que estão significativamente distantes da maioria dos dados.    
+Basicamente vai retornar a lista de colunas onde foram detectados outliers
+'''
+if EXECUTAR_TRATAMENTO_OUTLIERS:
+    outliers = detectar_outliers_iqr(df)
+    if outliers:    
+        print(f"\nColunas com outliers detectados usando IQR: {outliers}")  
+    else:
+        print("\nNenhum outlier detectado usando IQR.") 
+
+'''
+Tratamento de Outliers
+Basicamente as colunas que possuem outliers serão tratadas e os dados outliers eliminadas do dataset
+'''
+if EXECUTAR_TRATAMENTO_OUTLIERS and len(outliers) > 0:
+    df = tratar_e_eliminar_outliers(df, outliers, iqr_factor=1.5)
 
 '''
 3. Preparação para o Modelo (Separação e Escalamento)
