@@ -6,7 +6,7 @@ Para este projeto, usaremos as bibliotecas padrão de ciência de dados: pandas 
 1. Carregamento e Análise Inicial do Dataset
 O primeiro passo é carregar o arquivo e inspecioná-lo. Assumirei que o arquivo diabetes.csv está no mesmo diretório que o seu script Python ou notebook.
 '''
-
+# %%
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -195,7 +195,7 @@ for coluna in colunas_dataset:
         # Exibir estatísticas descritivas
         print(df[coluna].describe())    
 
-'''
+'''e
 3. Preparação para o Modelo (Separação e Escalamento)
 3.1. Definição de Features (X) e Target (y)
 Separamos as variáveis preditoras (features) do alvo (target).
@@ -294,3 +294,5 @@ Sinal: Um coeficiente positivo (por exemplo, Glucose) significa que um aumento n
 
 Magnitude: Quanto maior o valor absoluto do coeficiente, maior é a importância daquela feature para o modelo. No caso acima, Glucose e BMI (IMC) são geralmente as features mais influentes no diagnóstico de diabetes.
 '''
+
+# %%

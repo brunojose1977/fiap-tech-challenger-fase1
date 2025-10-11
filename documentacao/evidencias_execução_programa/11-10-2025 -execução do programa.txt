@@ -1,0 +1,252 @@
+(env) brunojose@brunojose-A13:~/devops/python/Fiap-TechChallenger1$ /home/brunojose/devops/python/Fiap-TechChallenger1/env/bin/python /home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:125: SyntaxWarning: invalid escape sequence '\E'
+  print("\Estatísticas descritivas (incluindo Mínimo e Máximo):")
+Dataset carregado com sucesso!
+
+Primeiras 5 linhas do dataset:
+   Pregnancies  Glucose  BloodPressure  SkinThickness  Insulin   BMI  DiabetesPedigreeFunction  Age  Outcome
+0            6      148             72             35        0  33.6                     0.627   50        1
+1            1       85             66             29        0  26.6                     0.351   31        0
+2            8      183             64              0        0  23.3                     0.672   32        1
+3            1       89             66             23       94  28.1                     0.167   21        0
+4            0      137             40             35      168  43.1                     2.288   33        1
+
+Informações gerais (Tipos de dados e contagem de não-nulos):
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 768 entries, 0 to 767
+Data columns (total 9 columns):
+ #   Column                    Non-Null Count  Dtype  
+---  ------                    --------------  -----  
+ 0   Pregnancies               768 non-null    int64  
+ 1   Glucose                   768 non-null    int64  
+ 2   BloodPressure             768 non-null    int64  
+ 3   SkinThickness             768 non-null    int64  
+ 4   Insulin                   768 non-null    int64  
+ 5   BMI                       768 non-null    float64
+ 6   DiabetesPedigreeFunction  768 non-null    float64
+ 7   Age                       768 non-null    int64  
+ 8   Outcome                   768 non-null    int64  
+dtypes: float64(2), int64(7)
+memory usage: 54.1 KB
+None
+\Estatísticas descritivas (incluindo Mínimo e Máximo):
+       Pregnancies     Glucose  BloodPressure  SkinThickness  ...         BMI  DiabetesPedigreeFunction         Age     Outcome
+count   768.000000  768.000000     768.000000     768.000000  ...  768.000000                768.000000  768.000000  768.000000
+mean      3.845052  120.894531      69.105469      20.536458  ...   31.992578                  0.471876   33.240885    0.348958
+std       3.369578   31.972618      19.355807      15.952218  ...    7.884160                  0.331329   11.760232    0.476951
+min       0.000000    0.000000       0.000000       0.000000  ...    0.000000                  0.078000   21.000000    0.000000
+25%       1.000000   99.000000      62.000000       0.000000  ...   27.300000                  0.243750   24.000000    0.000000
+50%       3.000000  117.000000      72.000000      23.000000  ...   32.000000                  0.372500   29.000000    0.000000
+75%       6.000000  140.250000      80.000000      32.000000  ...   36.600000                  0.626250   41.000000    1.000000
+max      17.000000  199.000000     122.000000      99.000000  ...   67.100000                  2.420000   81.000000    1.000000
+
+[8 rows x 9 columns]
+
+Contagem de valores nulos (NaN) após substituição de zeros:
+Pregnancies                   0
+Glucose                       5
+BloodPressure                35
+SkinThickness               227
+Insulin                     374
+BMI                          11
+DiabetesPedigreeFunction      0
+Age                           0
+Outcome                       0
+dtype: int64
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:152: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].fillna(df[col].median(), inplace=True)
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:152: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].fillna(df[col].median(), inplace=True)
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:152: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].fillna(df[col].median(), inplace=True)
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:152: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].fillna(df[col].median(), inplace=True)
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:152: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].fillna(df[col].median(), inplace=True)
+
+Contagem de valores nulos (NaN) após imputação:
+Pregnancies                 0
+Glucose                     0
+BloodPressure               0
+SkinThickness               0
+Insulin                     0
+BMI                         0
+DiabetesPedigreeFunction    0
+Age                         0
+Outcome                     0
+dtype: int64
+
+Colunas com outliers detectados usando IQR: ['Pregnancies', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
+Shape do DataFrame Original: (768, 9)
+Linhas removidas: 393
+Shape do DataFrame Limpo: (375, 9)
+fImprimindo boxplot para a coluna: Pregnancies
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean       4.333333
+std        3.331639
+min        0.000000
+25%        2.000000
+50%        4.000000
+75%        7.000000
+max       13.000000
+Name: Pregnancies, dtype: float64
+fImprimindo boxplot para a coluna: Glucose
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean     120.125333
+std       28.786375
+min       44.000000
+25%      101.000000
+50%      115.000000
+75%      137.000000
+max      197.000000
+Name: Glucose, dtype: float64
+fImprimindo boxplot para a coluna: BloodPressure
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean      73.066667
+std       10.268759
+min       44.000000
+25%       66.000000
+50%       72.000000
+75%       80.000000
+max      104.000000
+Name: BloodPressure, dtype: float64
+fImprimindo boxplot para a coluna: SkinThickness
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean      28.976000
+std        4.618257
+min       15.000000
+25%       29.000000
+50%       29.000000
+75%       29.000000
+max       42.000000
+Name: SkinThickness, dtype: float64
+fImprimindo boxplot para a coluna: Insulin
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean     124.984000
+std        2.213174
+min      114.000000
+25%      125.000000
+50%      125.000000
+75%      125.000000
+max      135.000000
+Name: Insulin, dtype: float64
+fImprimindo boxplot para a coluna: BMI
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.00000
+mean      31.68240
+std        6.22331
+min       18.20000
+25%       27.30000
+50%       31.60000
+75%       35.35000
+max       49.60000
+Name: BMI, dtype: float64
+fImprimindo boxplot para a coluna: DiabetesPedigreeFunction
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean       0.387872
+std        0.240621
+min        0.078000
+25%        0.208000
+50%        0.300000
+75%        0.530500
+max        1.191000
+Name: DiabetesPedigreeFunction, dtype: float64
+fImprimindo boxplot para a coluna: Age
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean      34.530667
+std       11.622332
+min       21.000000
+25%       25.000000
+50%       31.000000
+75%       42.000000
+max       66.000000
+Name: Age, dtype: float64
+fImprimindo boxplot para a coluna: Outcome
+/home/brunojose/devops/python/Fiap-TechChallenger1/diabetes_regressao_logistica.py:194: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+count    375.000000
+mean       0.368000
+std        0.482906
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        1.000000
+max        1.000000
+Name: Outcome, dtype: float64
+
+Dimensão de X (Features): (375, 8)
+Dimensão de y (Target): (375,)
+Dimensão de X_train: (300, 8)
+Dimensão de X_test: (75, 8)
+
+Dados escalados com sucesso usando StandardScaler (Padronização).
+
+Modelo de Regressão Logística treinado com sucesso!
+
+--- Desempenho do Modelo ---
+Acurácia no conjunto de teste: 0.7733
+
+Relatório de Classificação (Precision, Recall, F1-Score, Support):
+              precision    recall  f1-score   support
+
+           0       0.78      0.89      0.83        47
+           1       0.76      0.57      0.65        28
+
+    accuracy                           0.77        75
+   macro avg       0.77      0.73      0.74        75
+weighted avg       0.77      0.77      0.76        75
+
+
+--- Análise dos Coeficientes ---
+
+Coeficientes do Modelo (Impacto das Features):
+                    Feature  Coefficient
+1                   Glucose     1.128768
+5                       BMI     0.588595
+0               Pregnancies     0.389231
+6  DiabetesPedigreeFunction     0.293440
+3             SkinThickness     0.127954
+4                   Insulin    -0.094968
+7                       Age     0.081665
+2             BloodPressure    -0.020172
+(env) brunojose@brunojose-A13:~/devops/python/Fiap-Te
