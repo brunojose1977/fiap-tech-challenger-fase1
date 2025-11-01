@@ -125,6 +125,54 @@ print(df.info())
 print("\Estatísticas descritivas (incluindo Mínimo e Máximo):")
 print(df.describe())
 
+print("\nGráficos de histograma para cada feature:")
+## Gráficos de histograma para cada feature
+
+# Colunas onde '0' representa um valor ausente (NaN) para o dataset Pima Indians Diabetes
+cols_to_replace = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
+
+# Substituir '0' por NaN nas colunas especificadas
+df[cols_to_replace] = df[cols_to_replace].replace(0, np.nan)
+
+# Contar a existência de NaNs por feature (coluna)
+nan_counts = df.isnull().sum()
+
+# Filtrar apenas as colunas que agora contêm NaNs e ordenar por contagem
+nan_features = nan_counts[nan_counts > 0].sort_values(ascending=False)
+
+# --- Parte de Geração de Saída para o Terminal (Contagem de NaNs) ---
+print("\n" + "="*50)
+print("Contagem de Valores Ausentes (NaN) por Feature:")
+if nan_features.empty:
+    print("Nenhuma feature com valores ausentes encontradas após a substituição de '0'.")
+else:
+    # Usar .to_string() para garantir o print formatado na saída do terminal
+    print(nan_features.to_string())
+print("="*50)
+
+# --- Parte de Geração do Histograma (Barra) ---
+
+if not nan_features.empty:
+    # Criar a figura do histograma (Gráfico de Barras)
+    plt.figure(figsize=(10, 6))
+    plt.bar(nan_features.index, nan_features.values, color='skyblue')
+    plt.title('Histograma de Valores Ausentes (NaN) por Feature')
+    plt.xlabel('Feature')
+    plt.ylabel('Contagem de Valores Ausentes')
+    plt.xticks(rotation=45, ha='right') # Rotaciona os rótulos do eixo X para melhor visualização
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout() # Ajusta automaticamente o layout
+
+    # Salvar a imagem do histograma (necessário para visualização em ambientes que não exibem plots interativos)
+    histogram_filename = 'nan_features_histogram.png'
+    plt.savefig(histogram_filename)
+    print(f"\nHistograma salvo como {histogram_filename}")
+else:
+    print("\nO histograma não foi gerado pois não há valores ausentes (NaN) nas features analisadas.")
+
+## >>>>>>>>>>> estou aqui
+
+
 '''
 2. Tratamento de Dados (Limpeza e Imputação)
 No conjunto de dados Pima Indians Diabetes (o que é comumente usado com esta estrutura), algumas colunas como Glucose, BloodPressure, SkinThickness, Insulin, e BMI podem ter valores zero, o que biologicamente é impossível ou altamente improvável (exceto talvez em condições extremas ou erro de medição). Estes zeros são frequentemente tratados como valores nulos (NaN).
