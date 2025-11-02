@@ -200,7 +200,7 @@ for col in cols_to_replace:
 print("\nContagem de valores nulos (NaN) após imputação:")
 print(df.isnull().sum())
 
-
+# primeira passada
 outliers = []
 '''
 Detecção de Outliers
@@ -214,7 +214,6 @@ if EXECUTAR_TRATAMENTO_OUTLIERS:
     else:
         print("\nNenhum outlier detectado usando IQR.") 
 
-## >>>>>>>>>>> estou aqui
 # --- NOVA FUNÇÃO ADICIONADA: gerar_boxplots ---
 def gerar_boxplots(df, colunas, filename='boxplots_outliers_apos_imputacao.png'):
     """
@@ -261,9 +260,10 @@ def gerar_boxplots(df, colunas, filename='boxplots_outliers_apos_imputacao.png')
     plt.close(fig) # Fecha a figura para liberar memória
 # --- FIM DA NOVA FUNÇÃO ---
 
+# Primeira passada
 # --- INSERÇÃO DA CHAMADA DA NOVA FUNÇÃO ---
 colunas_para_boxplot = ['Pregnancies', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
-gerar_boxplots(df, colunas_para_boxplot)
+gerar_boxplots(df, colunas_para_boxplot, "boxplots_outliers_apos_imputacao.png")
 # --- FIM DA INSERÇÃO ---
 
 
@@ -274,6 +274,39 @@ Basicamente as colunas que possuem outliers serão tratadas e os dados outliers 
 if EXECUTAR_TRATAMENTO_OUTLIERS and len(outliers) > 0:
     df = tratar_e_eliminar_outliers(df, outliers, iqr_factor=1.5)
 
+''' 
+Verificar o resultado do tratamento de outliers com boxplots e estatísticas descritivas
+'''
+
+print("\nVerificar o resultado da detecção de outliers depois do tratamento de outliers com boxplots e estatísticas descritivas\n")
+
+# segunda passada - nova detecção de outliers
+outliers = []
+'''
+Detecção de Outliers
+Usaremos o método do Intervalo Interquartil (IQR) para detectar outliers. Este método é eficaz para identificar valores que estão significativamente distantes da maioria dos dados.    
+Basicamente vai retornar a lista de colunas onde foram detectados outliers
+'''
+if EXECUTAR_TRATAMENTO_OUTLIERS:
+    # Nova passada - nova detecção
+    outliers = detectar_outliers_iqr(df)
+    if outliers:    
+        print(f"\nColunas com outliers detectados usando IQR: {outliers}")  
+    else:
+        print("\nNenhum outlier detectado usando IQR.") 
+
+print("\n Verificar o resultado do tratamento de outliers com boxplots e estatísticas descritivas\n")
+
+print(f"Shape do DataFrame Limpo outliers tratados: {df.shape}")
+
+# Nova passada
+# Plotar novamente os Boxplots após o tratamento de outliers
+# --- INSERÇÃO DA CHAMADA DA NOVA FUNÇÃO ---
+colunas_para_boxplot = ['Pregnancies', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
+gerar_boxplots(df, colunas_para_boxplot, "boxplots_outliers_apos_imputacao_apos_tratamento_outliers.png")
+# --- FIM DA INSERÇÃO ---
+
+### >>>>> estou aqui
 
 '''
 Avaliar a escala dos dados
@@ -295,7 +328,7 @@ for coluna in colunas_dataset:
         # Exibir estatísticas descritivas
         print(df[coluna].describe())    
 
-'''e
+'''
 3. Preparação para o Modelo (Separação e Escalamento)
 3.1. Definição de Features (X) e Target (y)
 Separamos as variáveis preditoras (features) do alvo (target).
