@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 EXECUTAR_TRATAMENTO_OUTLIERS = True
 
@@ -301,12 +302,36 @@ print(f"Shape do DataFrame Limpo outliers tratados: {df.shape}")
 
 # Nova passada
 # Plotar novamente os Boxplots após o tratamento de outliers
-# --- INSERÇÃO DA CHAMADA DA NOVA FUNÇÃO ---
+# CHAMADA DA NOVA FUNÇÃO ---
 colunas_para_boxplot = ['Pregnancies', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
 gerar_boxplots(df, colunas_para_boxplot, "boxplots_outliers_apos_imputacao_apos_tratamento_outliers.png")
-# --- FIM DA INSERÇÃO ---
+# --- FIM DA CHAMADA ---
 
-### >>>>> estou aqui
+
+### Avalianto e plotando a coorelação entre as features
+# GRÁFICO HEATMAP
+print("\nGráfico de Correlação (Heatmap) das Features:")
+
+# Calcular a matriz de correlação
+correlation_matrix = df.corr()
+
+# Configurar o plot
+plt.figure(figsize=(10, 8))
+# Usar seaborn para o heatmap
+sns.heatmap(correlation_matrix, 
+            annot=True, # Mostrar os valores de correlação na célula
+            fmt=".2f", # Formato de duas casas decimais
+            cmap='coolwarm', # Mapa de cores
+            linewidths=.5, # Linhas entre as células
+            cbar_kws={'label': 'Coeficiente de Correlação'})
+
+plt.title('Heatmap de Correlação das Features do Dataset Diabetes', fontsize=16)
+correlation_filename = 'correlation_heatmap.png'
+plt.savefig(correlation_filename)
+plt.close()
+print(f"Heatmap de correlação salvo como {correlation_filename}")
+## ---------------------------------------------------------------------
+
 
 '''
 Avaliar a escala dos dados
@@ -319,12 +344,13 @@ colunas_dataset = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insu
 
 for coluna in colunas_dataset:
     if coluna in df.columns:
-        # Criar o gráfico de boxplot
-        print('fImprimindo boxplot para a coluna:', coluna)
-        plt.boxplot(df[coluna])
-        plt.title(coluna)
-        plt.ylabel('Valores')
-        plt.show()
+        # # Criar o gráfico de boxplot
+        # print(f'Imprimindo boxplot para a coluna:', coluna)
+        # plt.boxplot(df[coluna])
+        # plt.title(coluna)
+        # plt.ylabel('Valores')
+        # plt.show()
+
         # Exibir estatísticas descritivas
         print(df[coluna].describe())    
 
@@ -378,6 +404,8 @@ X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 print("\nDados escalados com sucesso usando StandardScaler (Padronização).")
+
+### >>>>> estou aqui
 
 '''
 4. Aplicação da Regressão Logística
