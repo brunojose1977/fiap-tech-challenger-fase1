@@ -170,8 +170,6 @@ if not nan_features.empty:
 else:
     print("\nO histograma não foi gerado pois não há valores ausentes (NaN) nas features analisadas.")
 
-## >>>>>>>>>>> estou aqui
-
 
 '''
 2. Tratamento de Dados (Limpeza e Imputação)
@@ -190,7 +188,7 @@ print("\nContagem de valores nulos (NaN) após substituição de zeros:")
 print(df.isnull().sum())
 
 '''
-ratamento de Valores Nulos (Imputação)
+Tratamento de Valores Nulos (Imputação)
 O método mais comum para imputação é usar a mediana (menos sensível a outliers do que a média) dos dados existentes para preencher os valores ausentes (NaN).
 '''
 
@@ -202,6 +200,7 @@ for col in cols_to_replace:
 print("\nContagem de valores nulos (NaN) após imputação:")
 print(df.isnull().sum())
 
+## >>>>>>>>>>> estou aqui
 outliers = []
 '''
 Detecção de Outliers
