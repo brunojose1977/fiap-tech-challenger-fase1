@@ -200,7 +200,7 @@ for col in cols_to_replace:
 print("\nContagem de valores nulos (NaN) após imputação:")
 print(df.isnull().sum())
 
-## >>>>>>>>>>> estou aqui
+
 outliers = []
 '''
 Detecção de Outliers
@@ -213,6 +213,59 @@ if EXECUTAR_TRATAMENTO_OUTLIERS:
         print(f"\nColunas com outliers detectados usando IQR: {outliers}")  
     else:
         print("\nNenhum outlier detectado usando IQR.") 
+
+## >>>>>>>>>>> estou aqui
+# --- NOVA FUNÇÃO ADICIONADA: gerar_boxplots ---
+def gerar_boxplots(df, colunas, filename='boxplots_outliers_apos_imputacao.png'):
+    """
+    Gera boxplots para as colunas especificadas para visualizar outliers.
+
+    Args:
+        df (pd.DataFrame): O DataFrame de entrada.
+        colunas (list): Lista de nomes de colunas para gerar boxplots.
+        filename (str): Nome do arquivo para salvar o gráfico.
+    """
+    n_colunas = len(colunas)
+    # Determinar o layout da subfigura (ex: 3 colunas)
+    cols = 3
+    rows = (n_colunas + cols - 1) // cols
+    
+    # Aumentar um pouco o figsize para melhor visualização dos 7 gráficos
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
+    
+    # Achatar o array de axes para fácil iteração, caso seja multidimensional
+    if n_colunas > 1:
+        axes = axes.flatten()
+    else:
+        # Se for apenas uma coluna, axes não é um array
+        axes = [axes] 
+
+    for i, coluna in enumerate(colunas):
+        if coluna in df.columns:
+            ax = axes[i]
+            # Criar o boxplot
+            # vert=False para orientação horizontal, facilitando a leitura da dispersão
+            df.boxplot(column=coluna, ax=ax, vert=False, patch_artist=True) 
+            ax.set_title(f'Boxplot de {coluna}')
+            ax.set_xlabel('Valor')
+        
+    # Ocultar subplots vazios, se houver
+    for j in range(n_colunas, rows * cols):
+        fig.delaxes(axes[j])
+        
+    plt.suptitle('Visualização de Outliers (Método Boxplot) - Dados Após Imputação', fontsize=16)
+    # Ajusta o layout para a suptitle e subtítulos não se sobreporem
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95]) 
+    plt.savefig(filename)
+    print(f"\nBoxplots de outliers salvos como {filename}")
+    plt.close(fig) # Fecha a figura para liberar memória
+# --- FIM DA NOVA FUNÇÃO ---
+
+# --- INSERÇÃO DA CHAMADA DA NOVA FUNÇÃO ---
+colunas_para_boxplot = ['Pregnancies', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
+gerar_boxplots(df, colunas_para_boxplot)
+# --- FIM DA INSERÇÃO ---
+
 
 '''
 Tratamento de Outliers
