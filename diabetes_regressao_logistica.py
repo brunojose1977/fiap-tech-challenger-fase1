@@ -12,7 +12,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -457,3 +458,50 @@ Magnitude: Quanto maior o valor absoluto do coeficiente, maior é a importância
 '''
 
 # %%
+
+## Aplicando a Matriz grafica de confusão
+
+# 3. Geração e Visualização da Matriz de Confusão
+# Calculando a Matriz de Confusão
+cm = confusion_matrix(y_test, y_pred)
+
+print("\n--- Matriz de Confusão ---")
+print(cm)
+'''
+Interpretação da Matriz de Confusão (CM):
+[TN FP]
+[FN VP]
+
+Onde:
+TN (Verdadeiro Negativo): Casos corretamente previstos como NÃO Diabetes (0).
+FP (Falso Positivo): Casos incorretamente previstos como Diabetes (1) - Erro Tipo I.
+FN (Falso Negativo): Casos incorretamente previstos como NÃO Diabetes (0) - Erro Tipo II.
+VP (Verdadeiro Positivo): Casos corretamente previstos como Diabetes (1).
+'''
+
+# 4. Plotagem da Matriz de Confusão (Gerando o Gráfico)
+plt.figure(figsize=(8, 6))
+# Usando seaborn.heatmap para uma visualização clara
+sns.heatmap(cm, 
+            annot=True,          # Mostrar os valores na célula
+            fmt="d",             # Formato decimal (números inteiros)
+            cmap="Blues",        # Mapa de cores
+            cbar=False,          # Não mostrar a barra de cores
+            linecolor='black',   # Cor das linhas de separação
+            linewidths=0.5,      # Largura das linhas de separação
+            xticklabels=['Não Diabetes (0)', 'Diabetes (1)'], # Rótulos do eixo X (Previsto)
+            yticklabels=['Não Diabetes (0)', 'Diabetes (1)']  # Rótulos do eixo Y (Real)
+            )
+
+plt.title('Matriz de Confusão da Regressão Logística')
+plt.xlabel('Valor Previsto')
+plt.ylabel('Valor Real')
+
+# Salvar a imagem do gráfico da Matriz de Confusão
+confusion_matrix_filename = 'confusion_matrix_logistic_regression.png'
+plt.savefig(confusion_matrix_filename)
+plt.close() # Fecha a figura para liberar memória
+
+print(f"\nGráfico da Matriz de Confusão salvo como {confusion_matrix_filename}")
+
+# %% FIM DO CÓDIGO
