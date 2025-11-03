@@ -405,8 +405,6 @@ X_test_scaled = scaler.transform(X_test)
 
 print("\nDados escalados com sucesso usando StandardScaler (Padronização).")
 
-### >>>>> estou aqui
-
 '''
 4. Aplicação da Regressão Logística
 A Regressão Logística é um algoritmo de classificação linear (apesar do nome) que modela a probabilidade de um evento pertencer a uma das duas classes (0 ou 1).
@@ -419,6 +417,8 @@ model = LogisticRegression(solver='liblinear', random_state=42)
 model.fit(X_train_scaled, y_train)
 
 print("\nModelo de Regressão Logística treinado com sucesso!")
+
+### >>>>> estou aqui
 
 '''
 5. Avaliação do Modelo
