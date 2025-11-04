@@ -231,7 +231,7 @@ def limpar_tela():
 #----------------------------------------------
 limpar_tela()
 print("\n Carregando o Dataset diabetes.csv...")
-df = pd.read_csv('/home/brunojose/devops/python/Fiap-TechChallenger1/datasets/diabetes.csv')
+df = pd.read_csv('datasets/diabetes.csv')
 print("\n Dataset carregado com sucesso!")
 
 # Visualizar as primeiras linhas e informações gerais
