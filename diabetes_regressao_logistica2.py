@@ -74,7 +74,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -530,17 +529,371 @@ X_test_scaled = scaler.transform(X_test)
 print("\n Dados escalados com sucesso usando StandardScaler (Padronização).")
 
 #-------------------------------------------------
-# 7. Aplicação da Regressão Logística
+# 6.5. Algoritmo Genético para Otimização de Hiperparâmetros
+#-------------------------------------------------
+'''
+Algoritmo Genético para Otimização de Hiperparâmetros
+O algoritmo genético será usado para encontrar os melhores hiperparâmetros 
+para o modelo de Regressão Logística, otimizando:
+- C (inverso da força de regularização)
+- penalty (tipo de regularização: 'l1' ou 'l2')
+- solver (algoritmo de otimização)
+'''
+
+import random
+from sklearn.metrics import f1_score
+
+class AlgoritmoGenetico:
+    """
+    Implementação de um algoritmo genético para otimização de hiperparâmetros.
+    """
+    
+    def __init__(self, populacao_tamanho=20, geracoes=10, taxa_mutacao=0.1, 
+                 taxa_crossover=0.7, X_train=None, X_test=None, y_train=None, y_test=None):
+        """
+        Inicializa o algoritmo genético.
+        
+        Args:
+            populacao_tamanho: Tamanho da população
+            geracoes: Número de gerações
+            taxa_mutacao: Taxa de mutação (0 a 1)
+            taxa_crossover: Taxa de crossover (0 a 1)
+            X_train, X_test, y_train, y_test: Dados para treino e teste
+        """
+        self.populacao_tamanho = populacao_tamanho
+        self.geracoes = geracoes
+        self.taxa_mutacao = taxa_mutacao
+        self.taxa_crossover = taxa_crossover
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.historico_fitness = []
+        self.melhor_individuo = None
+        self.melhor_fitness = -float('inf')
+        
+    def criar_individuo(self):
+        """
+        Cria um indivíduo (cromossomo) com hiperparâmetros aleatórios.
+        
+        Returns:
+            dict: Dicionário com os hiperparâmetros
+        """
+        # C: inverso da força de regularização (valores logarítmicos: 0.001 a 100)
+        C = 10 ** random.uniform(-3, 2)  # 0.001 a 100
+        
+        # penalty: tipo de regularização
+        penalty = random.choice(['l1', 'l2'])
+        
+        # solver: algoritmo de otimização (depende do penalty)
+        if penalty == 'l1':
+            solver = 'liblinear'
+        else:
+            solver = random.choice(['liblinear', 'lbfgs', 'newton-cg', 'sag', 'saga'])
+        
+        return {
+            'C': C,
+            'penalty': penalty,
+            'solver': solver
+        }
+    
+    def criar_populacao(self):
+        """
+        Cria a população inicial.
+        
+        Returns:
+            list: Lista de indivíduos
+        """
+        return [self.criar_individuo() for _ in range(self.populacao_tamanho)]
+    
+    def calcular_fitness(self, individuo):
+        """
+        Calcula o fitness de um indivíduo (quanto maior, melhor).
+        Usa F1-score como métrica de fitness.
+        
+        Args:
+            individuo: Dicionário com hiperparâmetros
+            
+        Returns:
+            float: Fitness do indivíduo (F1-score)
+        """
+        try:
+            # Criar e treinar o modelo com os hiperparâmetros do indivíduo
+            modelo = LogisticRegression(
+                C=individuo['C'],
+                penalty=individuo['penalty'],
+                solver=individuo['solver'],
+                random_state=42,
+                max_iter=1000
+            )
+            
+            modelo.fit(self.X_train, self.y_train)
+            
+            # Fazer previsões no conjunto de teste
+            y_pred = modelo.predict(self.X_test)
+            
+            # Calcular F1-score como fitness
+            fitness = f1_score(self.y_test, y_pred)
+            
+            return fitness
+            
+        except Exception as e:
+            # Se houver erro, retornar fitness muito baixo
+            print(f"  Erro ao calcular fitness: {e}")
+            return 0.0
+    
+    def selecionar_pais(self, populacao, fitness_scores):
+        """
+        Seleciona pais usando método de roleta (proporcional ao fitness).
+        
+        Args:
+            populacao: Lista de indivíduos
+            fitness_scores: Lista de scores de fitness
+            
+        Returns:
+            tuple: Par de pais selecionados
+        """
+        # Normalizar fitness para probabilidades (garantir valores positivos)
+        min_fitness = min(fitness_scores)
+        fitness_normalizados = [f - min_fitness + 0.01 for f in fitness_scores]
+        soma_fitness = sum(fitness_normalizados)
+        
+        if soma_fitness == 0:
+            # Se todos têm fitness 0, seleção aleatória
+            return random.sample(populacao, 2)
+        
+        probabilidades = [f / soma_fitness for f in fitness_normalizados]
+        
+        # Seleção por roleta
+        pai1 = random.choices(populacao, weights=probabilidades)[0]
+        pai2 = random.choices(populacao, weights=probabilidades)[0]
+        
+        return pai1, pai2
+    
+    def crossover(self, pai1, pai2):
+        """
+        Realiza crossover entre dois pais para gerar dois filhos.
+        
+        Args:
+            pai1, pai2: Dicionários com hiperparâmetros dos pais
+            
+        Returns:
+            tuple: Par de filhos gerados
+        """
+        if random.random() > self.taxa_crossover:
+            # Sem crossover, retornar cópias dos pais
+            return pai1.copy(), pai2.copy()
+        
+        # Crossover uniforme: cada gene vem de um pai aleatoriamente
+        filho1 = {
+            'C': pai1['C'] if random.random() < 0.5 else pai2['C'],
+            'penalty': pai1['penalty'] if random.random() < 0.5 else pai2['penalty'],
+            'solver': pai1['solver'] if random.random() < 0.5 else pai2['solver']
+        }
+        
+        filho2 = {
+            'C': pai2['C'] if random.random() < 0.5 else pai1['C'],
+            'penalty': pai2['penalty'] if random.random() < 0.5 else pai1['penalty'],
+            'solver': pai2['solver'] if random.random() < 0.5 else pai1['solver']
+        }
+        
+        # Ajustar solver se penalty for l1
+        if filho1['penalty'] == 'l1':
+            filho1['solver'] = 'liblinear'
+        if filho2['penalty'] == 'l1':
+            filho2['solver'] = 'liblinear'
+        
+        return filho1, filho2
+    
+    def mutar(self, individuo):
+        """
+        Aplica mutação em um indivíduo.
+        
+        Args:
+            individuo: Dicionário com hiperparâmetros
+            
+        Returns:
+            dict: Indivíduo mutado
+        """
+        individuo_mutado = individuo.copy()
+        
+        if random.random() < self.taxa_mutacao:
+            # Mutação em C (valor logarítmico)
+            individuo_mutado['C'] = 10 ** random.uniform(-3, 2)
+        
+        if random.random() < self.taxa_mutacao:
+            # Mutação em penalty
+            individuo_mutado['penalty'] = random.choice(['l1', 'l2'])
+            
+            # Ajustar solver se necessário
+            if individuo_mutado['penalty'] == 'l1':
+                individuo_mutado['solver'] = 'liblinear'
+            else:
+                individuo_mutado['solver'] = random.choice(['liblinear', 'lbfgs', 'newton-cg', 'sag', 'saga'])
+        
+        if random.random() < self.taxa_mutacao and individuo_mutado['penalty'] != 'l1':
+            # Mutação em solver (apenas se penalty não for l1)
+            individuo_mutado['solver'] = random.choice(['liblinear', 'lbfgs', 'newton-cg', 'sag', 'saga'])
+        
+        return individuo_mutado
+    
+    def executar(self):
+        """
+        Executa o algoritmo genético.
+        
+        Returns:
+            dict: Melhor indivíduo encontrado
+        """
+        print(f"\n{'='*60}")
+        print(" Iniciando Algoritmo Genético para Otimização de Hiperparâmetros")
+        print(f"{'='*60}")
+        print(f" Tamanho da população: {self.populacao_tamanho}")
+        print(f" Número de gerações: {self.geracoes}")
+        print(f" Taxa de mutação: {self.taxa_mutacao}")
+        print(f" Taxa de crossover: {self.taxa_crossover}")
+        print(f"{'='*60}\n")
+        
+        # Criar população inicial
+        populacao = self.criar_populacao()
+        
+        # Executar gerações
+        for geracao in range(self.geracoes):
+            print(f" Geração {geracao + 1}/{self.geracoes}...")
+            
+            # Calcular fitness para todos os indivíduos
+            fitness_scores = []
+            for i, individuo in enumerate(populacao):
+                fitness = self.calcular_fitness(individuo)
+                fitness_scores.append(fitness)
+                
+                # Atualizar melhor indivíduo
+                if fitness > self.melhor_fitness:
+                    self.melhor_fitness = fitness
+                    self.melhor_individuo = individuo.copy()
+            
+            # Armazenar histórico
+            fitness_medio = np.mean(fitness_scores)
+            fitness_max = max(fitness_scores)
+            self.historico_fitness.append({
+                'geracao': geracao + 1,
+                'medio': fitness_medio,
+                'maximo': fitness_max
+            })
+            
+            print(f"  Fitness médio: {fitness_medio:.4f}")
+            print(f"  Fitness máximo: {fitness_max:.4f}")
+            print(f"  Melhor indivíduo até agora: C={self.melhor_individuo['C']:.4f}, "
+                  f"penalty={self.melhor_individuo['penalty']}, solver={self.melhor_individuo['solver']}")
+            
+            # Criar nova população
+            nova_populacao = []
+            
+            # Elitismo: manter o melhor indivíduo
+            melhor_idx = np.argmax(fitness_scores)
+            nova_populacao.append(populacao[melhor_idx].copy())
+            
+            # Gerar resto da população
+            while len(nova_populacao) < self.populacao_tamanho:
+                # Selecionar pais
+                pai1, pai2 = self.selecionar_pais(populacao, fitness_scores)
+                
+                # Crossover
+                filho1, filho2 = self.crossover(pai1, pai2)
+                
+                # Mutação
+                filho1 = self.mutar(filho1)
+                filho2 = self.mutar(filho2)
+                
+                # Adicionar filhos à nova população
+                nova_populacao.append(filho1)
+                if len(nova_populacao) < self.populacao_tamanho:
+                    nova_populacao.append(filho2)
+            
+            populacao = nova_populacao
+        
+        print(f"\n{'='*60}")
+        print(" Algoritmo Genético Finalizado!")
+        print(f"{'='*60}")
+        print(f" Melhor Fitness (F1-Score): {self.melhor_fitness:.4f}")
+        print(f" Melhores Hiperparâmetros Encontrados:")
+        print(f"   C: {self.melhor_individuo['C']:.6f}")
+        print(f"   penalty: {self.melhor_individuo['penalty']}")
+        print(f"   solver: {self.melhor_individuo['solver']}")
+        print(f"{'='*60}\n")
+        
+        return self.melhor_individuo
+
+# Configuração do algoritmo genético
+USAR_ALGORITMO_GENETICO = True  # Flag para habilitar/desabilitar o algoritmo genético
+POPULACAO_TAMANHO = 20
+GERACOES = 10
+TAXA_MUTACAO = 0.15
+TAXA_CROSSOVER = 0.7
+
+#-------------------------------------------------
+# 7. Aplicação da Regressão Logística com Otimização por Algoritmo Genético
 #-------------------------------------------------
 '''
 Aplicação da Regressão Logística
 A Regressão Logística é um algoritmo de classificação linear (apesar do nome) que modela a probabilidade de um evento pertencer a uma das duas classes (0 ou 1).
+
+Otimização de Hiperparâmetros:
+- Se USAR_ALGORITMO_GENETICO = True, usa algoritmo genético para encontrar os melhores hiperparâmetros
+- Caso contrário, usa valores padrão
 '''
 print("\n Iniciando a aplicação da Regressão Logística...")
 
-# Inicializar o modelo de Regressão Logística
-# Definimos random_state para reprodutibilidade
-
+if USAR_ALGORITMO_GENETICO:
+    # Usar algoritmo genético para otimização
+    print("\n Otimizando hiperparâmetros usando Algoritmo Genético...")
+    
+    ag = AlgoritmoGenetico(
+        populacao_tamanho=POPULACAO_TAMANHO,
+        geracoes=GERACOES,
+        taxa_mutacao=TAXA_MUTACAO,
+        taxa_crossover=TAXA_CROSSOVER,
+        X_train=X_train_scaled,
+        X_test=X_test_scaled,
+        y_train=y_train,
+        y_test=y_test
+    )
+    
+    melhor_hiperparametros = ag.executar()
+    
+    # Criar modelo com os melhores hiperparâmetros encontrados
+    print("\n Criando modelo com os melhores hiperparâmetros encontrados...")
+    model = LogisticRegression(
+        C=melhor_hiperparametros['C'],
+        penalty=melhor_hiperparametros['penalty'],
+        solver=melhor_hiperparametros['solver'],
+        random_state=42,
+        max_iter=1000
+    )
+    
+    # Plotar evolução do fitness
+    if ag.historico_fitness:
+        geracoes_hist = [h['geracao'] for h in ag.historico_fitness]
+        fitness_medio_hist = [h['medio'] for h in ag.historico_fitness]
+        fitness_max_hist = [h['maximo'] for h in ag.historico_fitness]
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(geracoes_hist, fitness_medio_hist, 'b-o', label='Fitness Médio', linewidth=2)
+        plt.plot(geracoes_hist, fitness_max_hist, 'r-s', label='Fitness Máximo', linewidth=2)
+        plt.xlabel('Geração')
+        plt.ylabel('Fitness (F1-Score)')
+        plt.title('Evolução do Fitness - Algoritmo Genético')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        
+        evolucao_filename = 'evolucao_algoritmo_genetico.png'
+        plt.savefig(evolucao_filename)
+        plt.close()
+        print(f" Gráfico de evolução salvo como: {evolucao_filename}")
+    
+else:
+    # Usar valores padrão
+    print("\n Usando hiperparâmetros padrão...")
 model = LogisticRegression(solver='liblinear', random_state=42)
 
 # Treinar o modelo
