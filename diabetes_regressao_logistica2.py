@@ -826,7 +826,7 @@ class AlgoritmoGenetico:
 # Configuração do algoritmo genético
 USAR_ALGORITMO_GENETICO = True  # Flag para habilitar/desabilitar o algoritmo genético
 POPULACAO_TAMANHO = 20
-GERACOES = 10
+GERACOES = 500
 TAXA_MUTACAO = 0.15
 TAXA_CROSSOVER = 0.7
 
