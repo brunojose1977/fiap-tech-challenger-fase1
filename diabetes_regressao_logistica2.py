@@ -825,10 +825,13 @@ class AlgoritmoGenetico:
 
 # Configuração do algoritmo genético
 USAR_ALGORITMO_GENETICO = True  # Flag para habilitar/desabilitar o algoritmo genético
-POPULACAO_TAMANHO = 20
-GERACOES = 500
-TAXA_MUTACAO = 0.15
-TAXA_CROSSOVER = 0.7
+#POPULACAO_TAMANHO = 20
+POPULACAO_TAMANHO = 100
+GERACOES = 100
+#TAXA_MUTACAO = 0.15
+TAXA_MUTACAO = 0.25
+#TAXA_CROSSOVER = 0.7
+TAXA_CROSSOVER = 0.9
 
 #-------------------------------------------------
 # 7. Aplicação da Regressão Logística com Otimização por Algoritmo Genético
