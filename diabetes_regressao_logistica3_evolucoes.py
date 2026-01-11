@@ -7,13 +7,12 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import recall_score, f1_score, confusion_matrix, precision_score
+from sklearn.metrics import recall_score, confusion_matrix
 
 # --- 1. PREPARAÇÃO DOS DADOS ---
-print("Carregando e preparando dados com foco em Recall...")
+print("Carregando dados para maximização de redução de FN...")
 df = pd.read_csv('datasets/diabetes.csv')
 
-# Tratamento biológico (0 -> NaN -> Mediana)
 cols_to_replace = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
 df[cols_to_replace] = df[cols_to_replace].replace(0, np.nan)
 for col in cols_to_replace:
@@ -22,12 +21,11 @@ for col in cols_to_replace:
 X_raw = df.drop('Outcome', axis=1)
 y_raw = df['Outcome']
 
-# Divisão Train/Test com estratificação rigorosa
 X_train_full, X_test_full, y_train, y_test = train_test_split(
     X_raw, y_raw, test_size=0.2, random_state=42, stratify=y_raw
 )
 
-# --- 2. FUNÇÃO DE FITNESS (O CORAÇÃO DA MELHORIA) ---
+# --- 2. FUNÇÃO DE FITNESS (FOCO TOTAL EM MINIMIZAR FN) ---
 def fitness_func(ga_instance, solution, solution_idx):
     c_val = solution[0]
     solver_idx = int(solution[1])
@@ -37,14 +35,13 @@ def fitness_func(ga_instance, solution, solution_idx):
     solvers = ['lbfgs', 'liblinear', 'saga']
     selected_solver = solvers[solver_idx]
 
-    # Filtragem de Outliers menos agressiva (para não perder casos reais de diabetes)
     df_temp = pd.concat([X_train_full, y_train], axis=1).copy()
     for col in X_train_full.columns:
         Q1, Q3 = df_temp[col].quantile(0.25), df_temp[col].quantile(0.75)
         IQR = Q3 - Q1
         df_temp = df_temp[(df_temp[col] >= Q1 - iqr_f*IQR) & (df_temp[col] <= Q3 + iqr_f*IQR)]
     
-    if len(df_temp) < 200 or not any(feature_mask): return 0 
+    if len(df_temp) < 150 or not any(feature_mask): return -99999 
 
     X_train_ga = df_temp.drop('Outcome', axis=1).iloc[:, feature_mask]
     y_train_ga = df_temp['Outcome']
@@ -54,61 +51,66 @@ def fitness_func(ga_instance, solution, solution_idx):
     X_train_sc = scaler.fit_transform(X_train_ga)
     X_test_sc = scaler.transform(X_test_ga)
 
-    # MELHORIA CHAVE: class_weight='balanced' ajuda a reduzir Falsos Negativos
-    model = LogisticRegression(
-        C=c_val, 
-        solver=selected_solver, 
-        class_weight='balanced', 
-        max_iter=3000,
-        random_state=42
-    )
+    # Note o uso de class_weight='balanced' para forçar o modelo a olhar para a classe minoritária
+    model = LogisticRegression(C=c_val, solver=selected_solver, class_weight='balanced', max_iter=3000, random_state=42)
     model.fit(X_train_sc, y_train_ga)
     
     preds = model.predict(X_test_sc)
-    
-    # MÉTRICAS
-    recall = recall_score(y_test, preds, zero_division=0)
     cm = confusion_matrix(y_test, preds)
-    falsos_negativos = cm[1][0] if len(cm) > 1 else 999
     
-    # FITNESS PERSONALIZADA: Penaliza pesadamente cada Falso Negativo
-    # Quanto menos FN, maior a fitness. 
-    fitness = (recall * 1000) - (falsos_negativos * 50)
+    if len(cm) < 2: return -99999
+    
+    falsos_negativos = cm[1][0]
+    recall = recall_score(y_test, preds, zero_division=0)
+    
+    # ESTRATÉGIA DE FITNESS: 
+    # 1. Recompensamos o Recall (escala 0-1000)
+    # 2. Penalizamos PESADAMENTE cada FN (500 pontos por erro)
+    # Isso força o AG a descartar qualquer solução que deixe passar casos positivos.
+    fitness = (recall * 1000) - (falsos_negativos * 500)
     
     return fitness
 
-# --- 3. CONFIGURAÇÃO E EXECUÇÃO DO AG ---
-gene_space = [
-    {'low': 0.001, 'high': 20.0}, # C (amplitude aumentada)
-    [0, 1, 2],                    # Solver
-    [0],                          # Penalty (fixado em L2 para estabilidade)
-    {'low': 2.0, 'high': 4.0},    # IQR Factor (mais alto para manter dados críticos)
-] + [[0, 1]] * 8
+# --- 3. CALLBACK DE MONITORAMENTO ---
+def on_generation(ga_instance):
+    gen = ga_instance.generations_completed
+    best_sol, best_fit, _ = ga_instance.best_solution()
+    solvers = ['lbfgs', 'liblinear', 'saga']
+    print(f"Gen {gen:03d} | Fitness: {best_fit:8.2f} | C: {best_sol[0]:.4f} | Solver: {solvers[int(best_sol[1])]}")
+
+# --- 4. CONFIGURAÇÃO E EXECUÇÃO DO AG ---
+gene_space = [{'low': 0.001, 'high': 50.0}, [0, 1, 2], [0], {'low': 1.5, 'high': 5.0}] + [[0, 1]] * 8
 
 ga_instance = pygad.GA(
-    num_generations=100,
-    num_parents_mating=15,
+    num_generations=100, # Aumentado para busca mais exaustiva
+    num_parents_mating=10,
     fitness_func=fitness_func,
-    sol_per_pop=50,
+    sol_per_pop=40,
     num_genes=len(gene_space),
     gene_space=gene_space,
-    mutation_percent_genes=10,
-    crossover_type="uniform",
-    parent_selection_type="tournament"
+    on_generation=on_generation,
+    mutation_percent_genes=15 # Aumentado para evitar estagnação
 )
 
-print("Evoluindo modelo para eliminar Falsos Negativos...")
+print("\nIniciando busca agressiva por Zero Falsos Negativos...")
 ga_instance.run()
 
-# --- 4. AVALIAÇÃO FINAL E COMPARATIVO ---
-solution, solution_fitness, _ = ga_instance.best_solution()
+# --- 5. GERAÇÃO DOS GRÁFICOS ---
 
-# Reconstrução do modelo otimizado
+# Plot Fitness
+plt.figure(figsize=(10, 5))
+ga_instance.plot_fitness(title="Evolução da Fitness (Minimização de FN)")
+plt.grid(True, alpha=0.3)
+plt.savefig('evolucao_fn_fitness.png', dpi=300)
+plt.show()
+
+# --- 6. AVALIAÇÃO FINAL ---
+solution, _, _ = ga_instance.best_solution()
 best_f_mask = solution[4:].astype(bool)
 best_iqr = solution[3]
 best_solver = ['lbfgs', 'liblinear', 'saga'][int(solution[1])]
 
-# Aplicar o filtro de outliers otimizado
+# Reconstrução para Validação
 df_final = pd.concat([X_train_full, y_train], axis=1)
 for col in X_train_full.columns:
     Q1, Q3 = df_final[col].quantile(0.25), df_final[col].quantile(0.75)
@@ -122,30 +124,17 @@ sc = StandardScaler()
 X_tr_sc = sc.fit_transform(X_tr_ag)
 X_ts_sc = sc.transform(X_ts_ag)
 
-# Modelo Final com pesos balanceados
-final_model = LogisticRegression(C=solution[0], solver=best_solver, class_weight='balanced', max_iter=3000)
+final_model = LogisticRegression(C=solution[0], solver=best_solver, class_weight='balanced', max_iter=5000)
 final_model.fit(X_tr_sc, y_tr_ag)
 y_pred_final = final_model.predict(X_ts_sc)
 
-# Comparação com o original (sem AG e sem class_weight)
-mod_orig = LogisticRegression(solver='liblinear').fit(StandardScaler().fit_transform(X_train_full), y_train)
-y_pred_orig = mod_orig.predict(StandardScaler().fit_transform(X_test_full))
-
-# Visualização
-cm_orig = confusion_matrix(y_test, y_pred_orig)
+# Comparativo
 cm_ag = confusion_matrix(y_test, y_pred_final)
-
-
-
-fig, ax = plt.subplots(1, 2, figsize=(15, 6))
-sns.heatmap(cm_orig, annot=True, fmt='d', cmap='Reds', ax=ax[0])
-ax[0].set_title(f'ORIGINAL\nRecall: {recall_score(y_test, y_pred_orig):.2f} | FN: {cm_orig[1][0]}')
-sns.heatmap(cm_ag, annot=True, fmt='d', cmap='Greens', ax=ax[1])
-ax[1].set_title(f'AG OTIMIZADO (Foco Zero FN)\nRecall: {recall_score(y_test, y_pred_final):.2f} | FN: {cm_ag[1][0]}')
-
-plt.tight_layout()
-plt.savefig('resultado_final_diabetes.png')
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm_ag, annot=True, fmt='d', cmap='Blues')
+plt.title(f'Matriz de Confusão Otimizada para FN\nRecall: {recall_score(y_test, y_pred_final):.4f}')
+plt.savefig('resultado_final_fn.png', dpi=300)
 plt.show()
 
-print(f"\nMelhor configuração: Solver={best_solver}, C={solution[0]:.4f}, IQR_Factor={best_iqr:.2f}")
-print(f"Features mantidas: {list(X_raw.columns[best_f_mask])}")
+print(f"\nResultado Final: FN encontrados = {cm_ag[1][0]}")
+print(f"Features Selecionadas: {list(X_raw.columns[best_f_mask])}")
